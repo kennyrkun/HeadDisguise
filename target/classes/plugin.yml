@@ -1,3 +1,4 @@
 name: HeadDisguise
-version: 1.1
+version: 1.2a
 main: io.github.kennyrkun.HeadDisguise.HeadDisguise
+api-version: 1.13

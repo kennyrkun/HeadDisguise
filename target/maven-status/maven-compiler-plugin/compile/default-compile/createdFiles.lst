@@ -1,11 +1,6 @@
-com\comphenix\CancellationDetector$1.class
 io\github\kennyrkun\HeadDisguise\HeadDisguise$1.class
-com\comphenix\CancellationDetector$CancelListener.class
 com\codingforcookies\armorequip\ArmorEquipEvent$EquipMethod.class
 com\codingforcookies\armorequip\ArmorListener.class
 com\codingforcookies\armorequip\ArmorType.class
-com\comphenix\CancellationDetector$2.class
 com\codingforcookies\armorequip\ArmorEquipEvent.class
-com\comphenix\CancellationDetector$DelegatedRegisteredListener.class
-com\comphenix\CancellationDetector.class
 io\github\kennyrkun\HeadDisguise\HeadDisguise.class

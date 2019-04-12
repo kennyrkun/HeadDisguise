@@ -1,8 +1,9 @@
 package io.github.kennyrkun.HeadDisguise;
 
 import com.codingforcookies.armorequip.ArmorEquipEvent;
-
 import com.codingforcookies.armorequip.ArmorListener;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -10,6 +11,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 // TODO: add permission for headdisguise
 // headdisguise.disguise
@@ -20,6 +24,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class HeadDisguise extends JavaPlugin implements Listener
 {
+    private static final Set<Material> SKULLS = EnumSet.of(
+            Material.CREEPER_HEAD,
+            Material.DRAGON_HEAD,
+            Material.ZOMBIE_HEAD,
+            Material.SKELETON_SKULL,
+            Material.WITHER_SKELETON_SKULL
+        );
+
     @Override
     public void onEnable()
     {
@@ -47,59 +59,55 @@ public class HeadDisguise extends JavaPlugin implements Listener
         // TODO: see if this can be written better.
         if (newHelmet == null) // if there is a new helmet
             return;
-        else
-            if (!newHelmet.getType().equals(Material.SKULL_ITEM)) // make sure the helmet is now a skull
+        else if (!SKULLS.contains(newHelmet.getType())) // make sure the helmet is now a skull
                 return;
 
-        short helmetType = newHelmet.getDurability();
+        Material helmetType = newHelmet.getType();
 
         switch (helmetType)
         {
             // zombie
-            case 2:
+            case ZOMBIE_HEAD:
             {
                 if (!p.hasPermission("headdisguise.disguise.zombie"))
                     return;
 
-                // TODO: see if p.getnearbyentieis takes radius or location
-                for (Entity entity : p.getNearbyEntities(32, 32, 32))
+                for (Entity entity : p.getNearbyEntities(35, 35, 35))
                     if (entity instanceof Zombie)
                         ((Zombie) entity).setTarget(null);
 
                 break;
             }
             // skeleton or wither skeleton
-            case 0: // regular
+            case SKELETON_SKULL: // regular
             {
                 if (!p.hasPermission("headdisguise.disguise.skeleton.normal"))
                     return;
 
-                for (Entity entity : p.getNearbyEntities(32, 32, 32))
+                for (Entity entity : p.getNearbyEntities(35, 35, 35))
                     if (entity instanceof Skeleton)
-                        if (((Skeleton) entity).getSkeletonType() == Skeleton.SkeletonType.NORMAL)
-                            ((Skeleton) entity).setTarget(null);
+                        ((Skeleton) entity).setTarget(null);
 
                 break;
             }
-            case 1: // wither
+            case WITHER_SKELETON_SKULL: // wither
             {
                 if (!p.hasPermission("headdisguise.disguise.skeleton.wither"))
                     return;
 
-                for (Entity entity : p.getNearbyEntities(32, 32, 32))
-                    if (entity instanceof Skeleton)
-                        if (((Skeleton) entity).getSkeletonType() == Skeleton.SkeletonType.WITHER)
-                            ((Skeleton) entity).setTarget(null);
+                for (Entity entity : p.getNearbyEntities(35, 35, 35))
+                    if (entity instanceof WitherSkeleton)
+                        ((Skeleton) entity).setTarget(null);
 
                 break;
             }
             // creeper
-            case 4:
+            case CREEPER_HEAD:
             {
                 if (!p.hasPermission("headdisguise.disguise.creeper"))
                     return;
 
-                for (Entity entity : p.getNearbyEntities(32, 32, 32))
+                for (Entity entity : p.getNearbyEntities(35, 35, 35))
                     if (entity instanceof Creeper)
                         ((Creeper) entity).setTarget(null);
 
@@ -111,16 +119,18 @@ public class HeadDisguise extends JavaPlugin implements Listener
     @EventHandler
     public void onEntityTarget(EntityTargetEvent event)
     {
+        if (!(event.getEntity() instanceof Monster))
+            return;
+
         if (event.getTarget() instanceof Player)
         {
-            Player p = (Player)event.getTarget();
+            Player p = (Player) event.getTarget();
             ItemStack helmet = p.getInventory().getHelmet();
 
             if (helmet == null)
                 return;
-            else
-                if (!helmet.getType().equals(Material.SKULL_ITEM))
-                    return;
+            else if (!SKULLS.contains(helmet.getType()))
+                return;
 
             EntityType et = event.getEntityType();
 
@@ -131,41 +141,35 @@ public class HeadDisguise extends JavaPlugin implements Listener
                     if (!p.hasPermission("headdisguise.disguise.zombie"))
                         return;
 
-                    if (helmet.getDurability() == 2) // 2 is Zombie Skull
+                    if (helmet.getType().equals(Material.ZOMBIE_HEAD))
+                        event.setCancelled(true);
+
+                    break;
+                }
+                case WITHER_SKELETON:
+                {
+                    if (!p.hasPermission("headdisguise.disguise.skeleton.normal"))
+                        return;
+
+                    if (helmet.getType().equals(Material.WITHER_SKELETON_SKULL))
                         event.setCancelled(true);
 
                     break;
                 }
                 case SKELETON:
                 {
-                    Skeleton s = (Skeleton)event.getEntity();
-                    Skeleton.SkeletonType st = s.getSkeletonType();
+                    if (!p.hasPermission("headdisguise.disguise.skeleton.wither"))
+                        return;
 
-                    if (helmet.getDurability() == 0) // 1 is Wither Skull
-                    {
-                        if (!p.hasPermission("headdisguise.disguise.skeleton.normal"))
-                            return;
-
-                        if (st == Skeleton.SkeletonType.NORMAL)
-                            event.setCancelled(true);
-                    }
-                    else if (helmet.getDurability() == 1) // 0 is Skeleton Skull
-                    {
-                        if (!p.hasPermission("headdisguise.disguise.skeleton.wither"))
-                            return;
-
-                         if (st == Skeleton.SkeletonType.WITHER)// a regular skeleton
-                            event.setCancelled(true);
-                    }
-
-                    break;
+                    if (helmet.getType().equals(Material.SKELETON_SKULL))
+                        event.setCancelled(true);
                 }
                 case CREEPER:
                 {
                     if (!p.hasPermission("headdisguise.disguise.creeper"))
                         return;
 
-                    if (helmet.getDurability() == 4) // 4 is Creeper Skull
+                    if (helmet.getType().equals(Material.CREEPER_HEAD))
                         event.setCancelled(true);
 
                     break;
